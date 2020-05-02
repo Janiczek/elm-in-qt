@@ -12,6 +12,13 @@ Window {
         console.log("This is JavaScript!");
     }
 
+    Timer {
+        id: removeGridItemTimer
+        interval: 1000
+        repeat: true
+        // no onTriggered: this will happen in Grid.onCompleted
+    }
+
     Grid {
         id: grid
         x: 0
@@ -30,23 +37,16 @@ Window {
         Component.onCompleted: {
             console.log("Grid has finished initializing, let's start removing items");
 
-            function Timer() {
-                return Qt.createQmlObject("import QtQuick 2.0; Timer {}", mainwindow);
-            }
-
-            const timer = new Timer();
             let i = grid.children.length - 1;
-            timer.interval = 1000;
-            timer.repeat = true;
-            timer.triggered.connect(() => {
+            removeGridItemTimer.triggered.connect(() => {
                 console.log(`destroying: ${i}`);
                 grid.children[i].destroy();
                 if (i === 0) {
-                    timer.stop();
+                    removeGridItemTimer.stop();
                 }
                 i--;
             })
-            timer.start();
+            removeGridItemTimer.start();
 
         }
     }
