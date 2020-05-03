@@ -58,13 +58,20 @@ update msg model =
 
 view : Model -> Element Msg
 view model =
-    V.rowLayout []
+    V.rowLayout
+        [ VA.width 220
+        , VA.anchorsCenterIn "parent"
+        ]
         [ V.button
             [ VE.onClick Decrement
             , VA.text "-"
             ]
             []
-        , V.text_ <| String.fromInt model.counter
+        , V.text
+            [ VA.layoutFillWidth True
+            , VA.horizontalAlignment "Text.AlignHCenter"
+            ]
+            (String.fromInt model.counter)
         , V.button
             [ VE.onClick Increment
             , VA.text "+"

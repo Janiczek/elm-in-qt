@@ -81,17 +81,18 @@ encodeEventHandler handler =
 encodeQMLValue : QMLValue -> Value
 encodeQMLValue value =
     case value of
-        Bool_ bool ->
+        Bool bool ->
             Encode.bool bool
 
-        Float_ float ->
+        Float float ->
             Encode.float float
 
-        Int_ int ->
+        Int int ->
             Encode.int int
 
-        String_ string ->
+        String string ->
             Encode.string string
 
-        List_ list ->
-            Encode.list encodeQMLValue list
+        Raw rawValue ->
+            Encode.object
+                [ ( "rawValue", Encode.string rawValue ) ]

@@ -48,11 +48,12 @@ We perhaps don't need to support everything... We'll definitely leave some parts
 of QML be... and only bootstrap Elm views off of what it offers
 -}
 type QMLValue
-    = Bool_ Bool
-    | Float_ Float
-    | Int_ Int
-    | String_ String
-    | List_ (List QMLValue)
+    = Bool Bool
+    | Float Float
+    | Int Int
+    | String String
+    | -- like `parent`, `margin`
+      Raw String
 
 
 isProperty : Attribute msg -> Bool

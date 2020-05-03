@@ -1,9 +1,16 @@
 module Qt.View.Attributes exposing
-    ( color
+    ( anchorsCenterIn
+    , boolProp
+    , color
     , columns
+    , floatProp
     , height
-    , property
+    , horizontalAlignment
+    , intProp
+    , layoutFillWidth
+    , rawProp
     , spacing
+    , stringProp
     , text
     , width
     )
@@ -23,35 +30,71 @@ property name value =
         }
 
 
+intProp : String -> Int -> Attribute msg
+intProp name value =
+    property name <| Int value
+
+
+floatProp : String -> Float -> Attribute msg
+floatProp name value =
+    property name <| Float value
+
+
+stringProp : String -> String -> Attribute msg
+stringProp name value =
+    property name <| String value
+
+
+boolProp : String -> Bool -> Attribute msg
+boolProp name value =
+    property name <| Bool value
+
+
+rawProp : String -> String -> Attribute msg
+rawProp name rawValue =
+    property name <| Raw rawValue
+
+
 text : String -> Attribute msg
-text content =
-    property "text" <| String_ content
+text =
+    stringProp "text"
 
 
-{-| TODO float?
--}
-width : Int -> Attribute msg
-width width_ =
-    property "width" <| Int_ width_
+width : Float -> Attribute msg
+width =
+    floatProp "width"
 
 
-{-| TODO float?
--}
-height : Int -> Attribute msg
-height height_ =
-    property "height" <| Int_ height_
+height : Float -> Attribute msg
+height =
+    floatProp "height"
 
 
 color : String -> Attribute msg
-color color_ =
-    property "color" <| String_ color_
+color =
+    stringProp "color"
 
 
 columns : Int -> Attribute msg
-columns columns_ =
-    property "columns" <| Int_ columns_
+columns =
+    intProp "columns"
 
 
 spacing : Int -> Attribute msg
-spacing spacing_ =
-    property "spacing" <| Int_ spacing_
+spacing =
+    intProp "spacing"
+
+
+layoutFillWidth : Bool -> Attribute msg
+layoutFillWidth =
+    boolProp "Layout.fillWidth"
+
+
+anchorsCenterIn : String -> Attribute msg
+anchorsCenterIn =
+    rawProp "anchors.centerIn"
+
+
+horizontalAlignment : String -> Attribute msg
+horizontalAlignment =
+    rawProp "horizontalAlignment"

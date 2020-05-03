@@ -42,8 +42,7 @@ node tag attrs children =
 
 text : List (Attribute msg) -> String -> Element msg
 text attrs content =
-    node
-        "Text"
+    node "Text"
         (Attrs.text content :: attrs)
         []
 
