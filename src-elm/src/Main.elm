@@ -28,10 +28,15 @@ type Msg
     = MsgFromQML Value
 
 
+type MsgToQML
+    = JustStarted
+    | Echo Value
+
+
 init : () -> ( Model, Cmd Msg )
 init flags =
     ( {}
-    , elmToQML <| Encode.string "Just started!"
+    , sendToQML JustStarted
     )
 
 
@@ -41,11 +46,26 @@ update msg model =
         MsgFromQML value ->
             let
                 _ =
-                    Debug.log "value" value
+                    Debug.log "in Elm: we got some msg from QML" (Encode.encode 0 value)
             in
             ( model
-            , elmToQML <| Encode.string "Got that!"
+            , sendToQML <| Echo value
             )
+
+
+sendToQML : MsgToQML -> Cmd msg
+sendToQML msg =
+    elmToQML <|
+        case msg of
+            JustStarted ->
+                Encode.object
+                    [ ( "tag", Encode.string "JustStarted" ) ]
+
+            Echo value ->
+                Encode.object
+                    [ ( "tag", Encode.string "Echo" )
+                    , ( "value", value )
+                    ]
 
 
 subscriptions : Model -> Sub Msg

@@ -1,5 +1,8 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
+        <file>src-elm/elm.js</file>
+        <file>helpers/setTimeout.js</file>
+        <file>helpers/Timeout.qml</file>
     </qresource>
 </RCC>
