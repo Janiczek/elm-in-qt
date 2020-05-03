@@ -12,7 +12,6 @@ Window {
     title: "QT + Elm Spreadsheet!"
 
     Component.onCompleted: {
-        let vdomVersion = 0;
         const elmApp = Elm.initElmApp().Main.init();
         //elmApp.ports.qmlToElm.send({tag: 'hi to Elm from QML', someData: 42});
         elmApp.ports.elmToQML.subscribe((value) => {
@@ -21,6 +20,11 @@ Window {
             switch (value.tag) {
                 case 'ElmInitFinished':
                     VDOM.create(value.initialVDOM, mainwindow);
+                    break;
+                case 'NewVDOM':
+                    // TODO be more efficient with new views... diff, patch, do only minimum necessary work
+                    VDOM.clear(mainwindow);
+                    VDOM.create(value.vdom, mainwindow);
                     break;
                 default:
                     console.error(`Unknown Elm message to QML! ${value.tag}`);

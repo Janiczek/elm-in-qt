@@ -2,6 +2,7 @@
  ********* STATE **********
  **************************/
 
+// TODO unclear if we even need this. Right now it's just for convenience:
 let nodeId = 0;
 
 /**************************
@@ -9,13 +10,22 @@ let nodeId = 0;
  **************************/
 
 function create(element, parent) {
+    console.log('creating Elm-controlled view in QT');
     _createElement(element, parent);
 }
 
-
+/* TODO it's unclear whether we'll need this function at all
+   later when we implement the actuall patching
+*/
+function clear(parent) {
+    console.log('clearing the whole Elm-controlled view');
+    for (let i = 0; i < parent.data.length; i++) {
+        parent.data[i].destroy();
+    }
+}
 
 /**************************
- ********* PATCH **********
+ ********* CREATE **********
  **************************/
 
 function _createElement(element, parent) {
@@ -51,24 +61,4 @@ function _createNode(node, parent) {
     node.children.forEach(child => {
         _createElement(child, object);
     });
-}
-
-function _setProp(target, name, value) { //@
-
-}
-
-function _setProps(target, props) {
-
-}
-
-function _removeProp(target, name, value) { //@
-
-}
-
-function _patchProps(parent, patches) {
-
-}
-
-function _patch(parent, patches, index = 0) { //@
-
 }

@@ -3,9 +3,11 @@ port module Main exposing (main)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode exposing (Value)
 import Platform
+import Process
 import QT.View as V exposing (Element)
 import QT.View.Attributes as VA
 import QT.View.VDOM as V
+import Task
 
 
 port qmlToElm : (Value -> msg) -> Sub msg
@@ -37,6 +39,7 @@ type alias Model =
 
 type Msg
     = MsgFromQML Value
+    | FinishedSleeping
 
 
 type MsgToQML
@@ -58,31 +61,65 @@ init flags =
             }
     in
     ( model
-    , sendToQML <| ElmInitFinished <| view model
+    , Cmd.batch
+        [ sendToQML <| ElmInitFinished <| view model
+        , sleepAndRemoveRectangle
+        ]
     )
+
+
+sleepAndRemoveRectangle : Cmd Msg
+sleepAndRemoveRectangle =
+    Task.perform (\() -> FinishedSleeping) <| Process.sleep 1000
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        MsgFromQML value ->
-            let
-                _ =
-                    Debug.log "[ELM] msg from QML" (Encode.encode 0 value)
-            in
-            ( model
-            , Cmd.none
-            )
+    diff model <|
+        case msg of
+            MsgFromQML value ->
+                let
+                    _ =
+                        Debug.log "[ELM] msg from QML" (Encode.encode 0 value)
+                in
+                ( model
+                , Cmd.none
+                )
+
+            FinishedSleeping ->
+                let
+                    newModel =
+                        { model | rectangles = List.drop 1 model.rectangles }
+                in
+                ( newModel
+                , if List.isEmpty newModel.rectangles then
+                    Cmd.none
+
+                  else
+                    sleepAndRemoveRectangle
+                )
 
 
-viewRectangle : Rectangle -> Element
-viewRectangle { color, width, height } =
-    V.rectangle
-        [ VA.width width
-        , VA.height height
-        , VA.color color
-        ]
-        []
+diff : Model -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+diff oldModel ( newModel, cmd ) =
+    let
+        -- TODO inefficient - cache it? Perhaps in the `QT.element : Program` layer
+        oldView =
+            view oldModel
+
+        newView =
+            view newModel
+    in
+    if oldView == newView then
+        ( newModel, cmd )
+
+    else
+        ( newModel
+        , Cmd.batch
+            [ cmd
+            , sendToQML <| NewVDOM newView
+            ]
+        )
 
 
 view : Model -> Element
@@ -93,6 +130,16 @@ view model =
         ]
     <|
         List.map viewRectangle model.rectangles
+
+
+viewRectangle : Rectangle -> Element
+viewRectangle { color, width, height } =
+    V.rectangle
+        [ VA.width width
+        , VA.height height
+        , VA.color color
+        ]
+        []
 
 
 sendToQML : MsgToQML -> Cmd msg
