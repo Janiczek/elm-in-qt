@@ -59,9 +59,17 @@ update msg model =
 view : Model -> Element Msg
 view model =
     V.rowLayout []
-        [ V.button [ VE.onClick Decrement ] [ V.text_ "-" ]
+        [ V.button
+            [ VE.onClick Decrement
+            , VA.text "-"
+            ]
+            []
         , V.text_ <| String.fromInt model.counter
-        , V.button [ VE.onClick Increment ] [ V.text_ "+" ]
+        , V.button
+            [ VE.onClick Increment
+            , VA.text "+"
+            ]
+            []
         ]
 
 
