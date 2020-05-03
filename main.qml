@@ -1,33 +1,36 @@
 import QtQuick 2.14
 import QtQuick.Window 2.14
+import QtQuick.Controls 2.14
 import 'helpers/polyfills/setTimeout.js' as SetTimeout
-import 'helpers/vdom.js' as VDOM
+import 'helpers/virtual-qml.js' as VirtualQML
 import 'src-elm/elm.js' as Elm
 
 Window {
-    id: mainwindow // this is used in helpers/vdom.js! TODO better encapsulation?
+    id: mainwindow // TODO this is being used in vdom.js! somehow encapsulate this
     visible: true
     width: 640
     height: 480
-    title: "QT + Elm Spreadsheet!"
+    title: "Elm in Qt"
+
+    property var elm
 
     Component.onCompleted: {
-        const elmApp = Elm.initElmApp().Main.init();
-        //elmApp.ports.qmlToElm.send({tag: 'hi to Elm from QML', someData: 42});
-        elmApp.ports.elmToQML.subscribe((value) => {
+        elm = Elm.initElmApp().Main.init();
+        //elm.ports.qtToElm.send({tag: 'hi to Elm from Qt', someData: 42});
+        elm.ports.elmToQt.subscribe((value) => {
             console.log('----------------------------------------------');
             console.log(`Got message from Elm! ${value.tag}`);
             switch (value.tag) {
                 case 'ElmInitFinished':
-                    VDOM.create(value.initialVDOM, mainwindow);
+                    VirtualQML.create(value.initialView, mainwindow, elm);
                     break;
-                case 'NewVDOM':
+                case 'NewView':
                     // TODO be more efficient with new views... diff, patch, do only minimum necessary work
-                    VDOM.clear(mainwindow);
-                    VDOM.create(value.vdom, mainwindow);
+                    VirtualQML.clear(mainwindow);
+                    VirtualQML.create(value.view, mainwindow, elm);
                     break;
                 default:
-                    console.error(`Unknown Elm message to QML! ${value.tag}`);
+                    console.error(`Unknown Elm message to Qt! ${value.tag}`);
             }
         });
     }

@@ -1,4 +1,5 @@
 QT += quick
+QT += quickcontrols2
 
 CONFIG += c++11
 CONFIG += qtquickcompiler
@@ -16,7 +17,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += main.cpp
 
-RESOURCES += qml.qrc
+RESOURCES += elm-in-qt.qrc
 
 # Additional import path used to resolve QML modules in Qt Creator's code model
 QML_IMPORT_PATH =
@@ -31,7 +32,8 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 DISTFILES += \
     src-elm/src/Main.elm \
-    src-elm/src/QT/View.elm \
-    src-elm/src/QT/View/Attributes.elm \
-    src-elm/src/QT/View/Internal.elm \
-    src-elm/src/QT/View/VDOM.elm
+    src-elm/src/Qt/View.elm \
+    src-elm/src/Qt/View/Attributes.elm \
+    src-elm/src/Qt/View/Events.elm \
+    src-elm/src/Qt/View/Internal.elm \
+    src-elm/src/Qt/View/Virtual.elm

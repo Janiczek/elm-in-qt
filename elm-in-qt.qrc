@@ -4,6 +4,6 @@
         <file>src-elm/elm.js</file>
         <file>helpers/polyfills/setTimeout.js</file>
         <file>helpers/polyfills/Timeout.qml</file>
-        <file>helpers/vdom.js</file>
+        <file>helpers/virtual-qml.js</file>
     </qresource>
 </RCC>
