@@ -5,8 +5,10 @@ module Qt.View.Internal exposing
     , PropertyData
     , QMLValue(..)
     , isProperty
+    , transformEventHandlers
     )
 
+import Dict exposing (Dict)
 import Json.Decode as Decode exposing (Decoder)
 
 
@@ -25,8 +27,7 @@ type Attribute msg
          properties, or maybe I'm just skim-reading the documentation wrong. (This
          is my second day in QT! Have mercy :D )
       -}
-    | NotHandledEventHandler (NotHandledEventHandlerData msg)
-    | EventHandler EventHandlerData
+    | EventHandler (EventHandlerData msg)
 
 
 type alias PropertyData =
@@ -35,15 +36,9 @@ type alias PropertyData =
     }
 
 
-type alias NotHandledEventHandlerData msg =
+type alias EventHandlerData msg =
     { eventName : String
-    , msg : msg
-    }
-
-
-type alias EventHandlerData =
-    { eventName : String
-    , eventId : Int
+    , msg : msg -- TODO maybe document this (this can be either msg or Int depending on whether you've subscribed to the event handlers already)
     }
 
 
@@ -66,8 +61,98 @@ isProperty attr =
         Property _ ->
             True
 
-        NotHandledEventHandler _ ->
-            False
-
         EventHandler _ ->
             False
+
+
+transformEventHandlers : Int -> Element msg -> ( Element Int, Dict Int msg, Int )
+transformEventHandlers lastEventId element =
+    transformEventHandlersHelp
+        Dict.empty
+        lastEventId
+        element
+
+
+transformEventHandlersHelp :
+    Dict Int msg
+    -> Int
+    -> Element msg
+    -> ( Element Int, Dict Int msg, Int )
+transformEventHandlersHelp events lastEventId element =
+    case element of
+        Empty ->
+            ( Empty
+            , events
+            , lastEventId
+            )
+
+        Node node ->
+            let
+                ( newChildren, eventsAfterChildren, lastEventIdAfterChildren ) =
+                    List.foldr
+                        (\child ( accChildren, accEvents, accLastEventId ) ->
+                            let
+                                ( newChild, eventsAfterChild, lastEventIdAfterChild ) =
+                                    transformEventHandlersHelp
+                                        accEvents
+                                        accLastEventId
+                                        child
+                            in
+                            ( newChild :: accChildren
+                            , eventsAfterChild
+                            , lastEventIdAfterChild
+                            )
+                        )
+                        ( [], events, lastEventId )
+                        node.children
+
+                ( newAttrs, newEvents, newLastEventId ) =
+                    List.foldr
+                        (\attr ( accAttrs, accEvents, accLastEventId ) ->
+                            let
+                                ( newAttr, eventsAfterAttr, lastEventIdAfterAttr ) =
+                                    transformEventHandler
+                                        accEvents
+                                        accLastEventId
+                                        attr
+                            in
+                            ( newAttr :: accAttrs
+                            , eventsAfterAttr
+                            , lastEventIdAfterAttr
+                            )
+                        )
+                        ( [], eventsAfterChildren, lastEventIdAfterChildren )
+                        node.attrs
+            in
+            ( Node
+                { tag = node.tag
+                , attrs = newAttrs
+                , children = newChildren
+                }
+            , newEvents
+            , newLastEventId
+            )
+
+
+transformEventHandler :
+    Dict Int msg
+    -> Int
+    -> Attribute msg
+    -> ( Attribute Int, Dict Int msg, Int )
+transformEventHandler events lastEventId attr =
+    case attr of
+        Property prop ->
+            ( Property prop, events, lastEventId )
+
+        EventHandler handler ->
+            let
+                newEventId =
+                    lastEventId + 1
+            in
+            ( EventHandler
+                { eventName = handler.eventName
+                , msg = newEventId
+                }
+            , Dict.insert newEventId handler.msg events
+            , newEventId
+            )

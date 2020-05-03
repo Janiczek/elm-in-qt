@@ -34,7 +34,7 @@ function _createElement(element, parent) {
 
 function _createJsSignalCode(signalName, eventId) {
     // TODO mainwindow ... abstract it somehow
-    return `mainwindow.elm.ports.qtToElm.send({tag: 'EventEmitted', eventId: ${eventId}});`;
+    return `mainwindow.elm.ports.qtToElm.send({ tag: 'EventEmitted', eventId: ${eventId} });`;
 }
 
 function _createQmlCode(node) {
@@ -63,7 +63,6 @@ function _createNodeName(tag) {
 }
 
 function _createNode(node, parent) {
-    console.log(_createQmlCode(node));
     const object = Qt.createQmlObject(
         _createQmlCode(node),
         parent,

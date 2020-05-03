@@ -12,7 +12,7 @@ import Qt.View.Internal
         )
 
 
-encode : Element msg -> Value
+encode : Element Int -> Value
 encode element =
     case element of
         Empty ->
@@ -33,20 +33,13 @@ encode element =
                 ]
 
 
-partitionAttrs : List (Attribute msg) -> ( List PropertyData, List EventHandlerData )
+partitionAttrs : List (Attribute Int) -> ( List PropertyData, List (EventHandlerData Int) )
 partitionAttrs attrs =
     List.foldr
         (\attr ( props, handlers ) ->
             case attr of
                 Property prop ->
                     ( prop :: props
-                    , handlers
-                    )
-
-                NotHandledEventHandler _ ->
-                    -- Don't do anything. These shouldn't happen.
-                    -- TODO better type design?
-                    ( props
                     , handlers
                     )
 
@@ -72,16 +65,16 @@ encodeProperty prop =
     )
 
 
-encodeEventHandlers : List EventHandlerData -> Value
+encodeEventHandlers : List (EventHandlerData Int) -> Value
 encodeEventHandlers handlers =
     Encode.object <|
         List.map encodeEventHandler handlers
 
 
-encodeEventHandler : EventHandlerData -> ( String, Value )
+encodeEventHandler : EventHandlerData Int -> ( String, Value )
 encodeEventHandler handler =
     ( handler.eventName
-    , Encode.int handler.eventId
+    , Encode.int handler.msg
     )
 
 

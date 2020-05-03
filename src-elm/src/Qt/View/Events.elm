@@ -12,7 +12,7 @@ import Qt.View.Internal exposing (Attribute(..))
 
 on : String -> msg -> Attribute msg
 on eventName msg =
-    NotHandledEventHandler
+    EventHandler
         { eventName = eventName
         , msg = msg
         }

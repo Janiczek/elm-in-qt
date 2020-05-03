@@ -18,8 +18,6 @@ Window {
         elm = Elm.initElmApp().Main.init();
         //elm.ports.qtToElm.send({tag: 'hi to Elm from Qt', someData: 42});
         elm.ports.elmToQt.subscribe((value) => {
-            console.log('----------------------------------------------');
-            console.log(`Got message from Elm! ${value.tag}`);
             switch (value.tag) {
                 case 'ElmInitFinished':
                     VirtualQML.create(value.initialView, mainwindow, elm);
