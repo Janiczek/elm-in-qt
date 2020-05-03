@@ -8,6 +8,7 @@ module Qt.View exposing
     , nothing
     , rectangle
     , row
+    , rowLayout
     , text
     , text_
     )
@@ -62,6 +63,11 @@ grid =
 row : List (Attribute msg) -> List (Element msg) -> Element msg
 row =
     node "Row"
+
+
+rowLayout : List (Attribute msg) -> List (Element msg) -> Element msg
+rowLayout =
+    node "RowLayout"
 
 
 column : List (Attribute msg) -> List (Element msg) -> Element msg

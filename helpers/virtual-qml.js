@@ -40,7 +40,7 @@ function _createJsSignalCode(signalName, eventId) {
 function _createQmlCode(node) {
     // TODO different preamble for different node tags
     // TODO are all of these needed? which when?
-    const preamble = "import QtQuick 2.14; import QtQuick.Controls 2.14; import 'virtual-qml.js' as VirtualQML";
+    const preamble = "import QtQuick 2.14; import QtQuick.Controls 2.14; import QtQuick.Layouts 1.14";
 
     const props = Object.keys(node.props)
                         .map(key => `${key}: ${JSON.stringify(node.props[key])}`)
