@@ -3,6 +3,9 @@ port module Main exposing (main)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode exposing (Value)
 import Platform
+import QT.View as V exposing (Element)
+import QT.View.Attributes as VA
+import QT.View.VDOM as V
 
 
 port qmlToElm : (Value -> msg) -> Sub msg
@@ -13,6 +16,7 @@ port elmToQML : Value -> Cmd msg
 
 main : Program () Model Msg
 main =
+    -- TODO abstract our weird QT view to a new `QT.element : Program ...`
     Platform.worker
         { init = init
         , update = update
@@ -20,8 +24,15 @@ main =
         }
 
 
+type alias Rectangle =
+    { color : String
+    , width : Int
+    , height : Int
+    }
+
+
 type alias Model =
-    {}
+    { rectangles : List Rectangle }
 
 
 type Msg
@@ -29,14 +40,25 @@ type Msg
 
 
 type MsgToQML
-    = JustStarted
-    | Echo Value
+    = ElmInitFinished Element
+    | NewVDOM Element
 
 
 init : () -> ( Model, Cmd Msg )
 init flags =
-    ( {}
-    , sendToQML JustStarted
+    let
+        model =
+            { rectangles =
+                [ Rectangle "red" 50 50
+                , Rectangle "green" 20 50
+                , Rectangle "blue" 50 20
+                , Rectangle "cyan" 50 50
+                , Rectangle "magenta" 10 10
+                ]
+            }
+    in
+    ( model
+    , sendToQML <| ElmInitFinished <| view model
     )
 
 
@@ -46,25 +68,47 @@ update msg model =
         MsgFromQML value ->
             let
                 _ =
-                    Debug.log "in Elm: we got some msg from QML" (Encode.encode 0 value)
+                    Debug.log "[ELM] msg from QML" (Encode.encode 0 value)
             in
             ( model
-            , sendToQML <| Echo value
+            , Cmd.none
             )
+
+
+viewRectangle : Rectangle -> Element
+viewRectangle { color, width, height } =
+    V.rectangle
+        [ VA.width width
+        , VA.height height
+        , VA.color color
+        ]
+        []
+
+
+view : Model -> Element
+view model =
+    V.grid
+        [ VA.spacing 2
+        , VA.columns 3
+        ]
+    <|
+        List.map viewRectangle model.rectangles
 
 
 sendToQML : MsgToQML -> Cmd msg
 sendToQML msg =
     elmToQML <|
         case msg of
-            JustStarted ->
+            ElmInitFinished vdom ->
                 Encode.object
-                    [ ( "tag", Encode.string "JustStarted" ) ]
+                    [ ( "tag", Encode.string "ElmInitFinished" )
+                    , ( "initialVDOM", V.encode vdom )
+                    ]
 
-            Echo value ->
+            NewVDOM vdom ->
                 Encode.object
-                    [ ( "tag", Encode.string "Echo" )
-                    , ( "value", value )
+                    [ ( "tag", Encode.string "NewVDOM" )
+                    , ( "vdom", V.encode vdom )
                     ]
 
 

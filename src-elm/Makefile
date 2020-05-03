@@ -37,7 +37,13 @@ build: prepare-deps
 			-c 'wq' \
 			elm.js
 
+.SILENT: format
+.PHONY: format
+format: prepare-deps
+	yarn elm-format --yes ./src
+
 .SILENT: prepare-deps
 .PHONY: prepare-deps
 prepare-deps: package.json
 	yarn
+

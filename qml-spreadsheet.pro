@@ -28,3 +28,10 @@ QML_DESIGNER_IMPORT_PATH =
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+DISTFILES += \
+    src-elm/src/Main.elm \
+    src-elm/src/QT/View.elm \
+    src-elm/src/QT/View/Attributes.elm \
+    src-elm/src/QT/View/Internal.elm \
+    src-elm/src/QT/View/VDOM.elm

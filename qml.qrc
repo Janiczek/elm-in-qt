@@ -2,7 +2,8 @@
     <qresource prefix="/">
         <file>main.qml</file>
         <file>src-elm/elm.js</file>
-        <file>helpers/setTimeout.js</file>
-        <file>helpers/Timeout.qml</file>
+        <file>helpers/polyfills/setTimeout.js</file>
+        <file>helpers/polyfills/Timeout.qml</file>
+        <file>helpers/vdom.js</file>
     </qresource>
 </RCC>
