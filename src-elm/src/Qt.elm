@@ -110,6 +110,7 @@ deriveView user maybeOldView ( model, cmd ) =
         in
         ( { model
             | userView = newUserView
+            , userViewUnhandled = newUserViewUnhandled
             , events = newEvents
             , lastEventId = newLastEventId
           }
