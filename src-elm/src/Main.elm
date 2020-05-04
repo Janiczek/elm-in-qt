@@ -1,7 +1,6 @@
 port module Main exposing (main)
 
-import Json.Decode as Decode exposing (Decoder)
-import Json.Encode as Encode exposing (Value)
+import Json.Encode exposing (Value)
 import Qt
 import Qt.View as V exposing (Element)
 import Qt.View.Attributes as VA
