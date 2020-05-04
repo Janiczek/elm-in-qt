@@ -4,8 +4,8 @@ import Dict exposing (Dict)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode exposing (Value)
 import Platform
+import Qt.View.Encode as V
 import Qt.View.Internal as V exposing (Element)
-import Qt.View.Virtual as V
 
 
 type alias Model model msg =

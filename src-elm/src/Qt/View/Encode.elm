@@ -1,4 +1,4 @@
-module Qt.View.Virtual exposing (encode)
+module Qt.View.Encode exposing (encode)
 
 import Json.Encode as Encode exposing (Value)
 import Qt.View.Internal

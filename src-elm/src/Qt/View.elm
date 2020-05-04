@@ -23,7 +23,7 @@ type alias Element msg =
 
 
 type alias Attribute msg =
-    Internal.Attribute msg
+    ( String, Internal.Attribute msg )
 
 
 nothing : Element msg
@@ -35,7 +35,7 @@ node : String -> List (Attribute msg) -> List (Element msg) -> Element msg
 node tag attrs children =
     Node
         { tag = tag
-        , attrs = attrs
+        , attrs = Dict.fromList attrs
         , children = children
         }
 

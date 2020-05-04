@@ -1,9 +1,9 @@
 module Qt.View.Internal exposing
     ( Attribute(..)
     , Element(..)
-    , EventHandlerData
-    , PropertyData
+    , NodeData
     , QMLValue(..)
+    , getNodeData
     , isProperty
     , transformEventHandlers
     )
@@ -14,32 +14,32 @@ import Json.Decode as Decode exposing (Decoder)
 
 type Element msg
     = Empty
-    | Node
-        { tag : String
-        , attrs : List (Attribute msg)
-        , children : List (Element msg)
-        }
+    | Node (NodeData msg)
 
 
+type alias NodeData msg =
+    { tag : String
+    , attrs : Dict String (Attribute msg)
+    , children : List (Element msg)
+    }
+
+
+{-| The `msg` here will typically be one of two types:
+
+  - user-defined `Msg`
+  - an `Int` (event ID) that we're using in the generated QML code to know which
+    handler we're talking about, without resorting to needing `msgToString` and
+    `msgFromString` from the user.
+
+Note we must diff the `msg` ones, since different event IDs might just mean it's
+the same event handler in a different generation of QML objects.
+
+TODO check this claim ^ after we get proper VDOM diffing and patching
+
+-}
 type Attribute msg
-    = Property PropertyData
-      {- TODO I'm unsure this is OK naming. QT seems to have two meanings for
-         properties, or maybe I'm just skim-reading the documentation wrong. (This
-         is my second day in QT! Have mercy :D )
-      -}
-    | EventHandler (EventHandlerData msg)
-
-
-type alias PropertyData =
-    { name : String
-    , value : QMLValue
-    }
-
-
-type alias EventHandlerData msg =
-    { eventName : String
-    , msg : msg -- TODO maybe document this (this can be either msg or Int depending on whether you've subscribed to the event handlers already)
-    }
+    = Property QMLValue
+    | EventHandler msg
 
 
 {-| <https://doc.qt.io/qt-5/qtqml-typesystem-basictypes.html>
@@ -108,8 +108,8 @@ transformEventHandlersHelp events lastEventId element =
                         node.children
 
                 ( newAttrs, newEvents, newLastEventId ) =
-                    List.foldr
-                        (\attr ( accAttrs, accEvents, accLastEventId ) ->
+                    Dict.foldr
+                        (\name attr ( accAttrs, accEvents, accLastEventId ) ->
                             let
                                 ( newAttr, eventsAfterAttr, lastEventIdAfterAttr ) =
                                     transformEventHandler
@@ -117,7 +117,7 @@ transformEventHandlersHelp events lastEventId element =
                                         accLastEventId
                                         attr
                             in
-                            ( newAttr :: accAttrs
+                            ( ( name, newAttr ) :: accAttrs
                             , eventsAfterAttr
                             , lastEventIdAfterAttr
                             )
@@ -127,7 +127,7 @@ transformEventHandlersHelp events lastEventId element =
             in
             ( Node
                 { tag = node.tag
-                , attrs = newAttrs
+                , attrs = Dict.fromList newAttrs
                 , children = newChildren
                 }
             , newEvents
@@ -142,18 +142,25 @@ transformEventHandler :
     -> ( Attribute Int, Dict Int msg, Int )
 transformEventHandler events lastEventId attr =
     case attr of
-        Property prop ->
-            ( Property prop, events, lastEventId )
+        Property qmlValue ->
+            ( Property qmlValue, events, lastEventId )
 
-        EventHandler handler ->
+        EventHandler msg ->
             let
                 newEventId =
                     lastEventId + 1
             in
-            ( EventHandler
-                { eventName = handler.eventName
-                , msg = newEventId
-                }
-            , Dict.insert newEventId handler.msg events
+            ( EventHandler newEventId
+            , Dict.insert newEventId msg events
             , newEventId
             )
+
+
+getNodeData : Element msg -> Maybe (NodeData msg)
+getNodeData element =
+    case element of
+        Empty ->
+            Nothing
+
+        Node nodeData ->
+            Just nodeData
