@@ -32,6 +32,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 DISTFILES += \
     src-elm/src/Main.elm \
+    src-elm/src/Qt.elm \
     src-elm/src/Qt/View.elm \
     src-elm/src/Qt/View/Attributes.elm \
     src-elm/src/Qt/View/Events.elm \
