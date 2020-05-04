@@ -141,7 +141,8 @@ update user msg model =
             handleUserMsg user userMsg model
 
         UnknownMsgFromQt err ->
-            Debug.todo <| "unknown msg from Qt: " ++ Decode.errorToString err
+            -- TODO what to do here? Some kind of logging?
+            ( model, Cmd.none )
 
 
 handleUserMsg :
