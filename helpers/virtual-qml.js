@@ -7,7 +7,7 @@ function create(element, root) {
 }
 
 /* TODO it's unclear whether we'll need this function at all
-   later when we implement the actuall patching
+   later when we implement the actual patching
 */
 function clear(root) {
     for (let i = 0; i < root.data.length; i++) {
