@@ -1,8 +1,7 @@
 .SILENT: build
 .PHONY: build
 build: prepare-deps
-	# TODO --optimize and check the Elm<->QML connection still works
-	./node_modules/.bin/elm make src/Main.elm --output elm.js
+	./node_modules/.bin/elm make --optimize src/Main.elm --output elm.js
 
 	# change beginning of the file:
 	# - import setTimeout

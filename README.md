@@ -25,5 +25,4 @@ Tweak your QT target configs to run `make -C src-elm` before building!
 * decoders in events, to be able to get props from the objects... TextInput etc.
 * proper VDOM diffing and patching, to do less stuff. Our Counter demo is not
   very snappy right now!
-* try `elm make --optimize`
 * find out how to do statically built binaries
