@@ -1,10 +1,4 @@
 /**************************
- ********* STATE **********
- **************************/
-
-let nodeId = 0; // TODO unclear if we even need this. Right now it's just for convenience:
-
-/**************************
  ******* PUBLIC API *******
  **************************/
 
@@ -62,17 +56,11 @@ function _createQmlCode(node) {
     return `${preamble}; ${node.tag} { ${content} }`;
 }
 
-function _createNodeName(tag) {
-    const id = nodeId;
-    nodeId++;
-    return `${tag}#${id}`;
-}
-
 function _createNode(node, parent) {
     const object = Qt.createQmlObject(
         _createQmlCode(node),
         parent,
-        _createNodeName(node.tag)
+        node.tag
     );
 
     node.children.forEach(child => {
