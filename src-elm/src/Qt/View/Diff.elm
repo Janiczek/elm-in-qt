@@ -34,7 +34,7 @@ diff :
     }
     -> Patch msg
 diff ({ old, new } as elements) =
-    if didChange elements then
+    if didChangeTypeOrTag elements then
         ReplaceWith new
 
     else
@@ -56,12 +56,12 @@ diff ({ old, new } as elements) =
             |> Maybe.withDefault NoOp
 
 
-didChange :
+didChangeTypeOrTag :
     { old : Element msg
     , new : Element msg
     }
     -> Bool
-didChange { old, new } =
+didChangeTypeOrTag { old, new } =
     case ( old, new ) of
         ( Empty, Empty ) ->
             False
