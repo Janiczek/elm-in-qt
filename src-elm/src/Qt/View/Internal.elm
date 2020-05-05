@@ -117,17 +117,17 @@ transformEventHandlersHelp events lastEventId element =
                                         accLastEventId
                                         attr
                             in
-                            ( ( name, newAttr ) :: accAttrs
+                            ( Dict.insert name newAttr accAttrs
                             , eventsAfterAttr
                             , lastEventIdAfterAttr
                             )
                         )
-                        ( [], eventsAfterChildren, lastEventIdAfterChildren )
+                        ( Dict.empty, eventsAfterChildren, lastEventIdAfterChildren )
                         node.attrs
             in
             ( Node
                 { tag = node.tag
-                , attrs = Dict.fromList newAttrs
+                , attrs = newAttrs
                 , children = newChildren
                 }
             , newEvents
