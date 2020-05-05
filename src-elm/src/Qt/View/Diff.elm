@@ -8,7 +8,7 @@ module Qt.View.Diff exposing (Patch(..), diff)
 import Dict
 import Qt.View.Internal
     exposing
-        ( Attribute(..)
+        ( AttributeValue(..)
         , Element(..)
         , NodeData
         , getNodeData
@@ -16,26 +16,25 @@ import Qt.View.Internal
 
 
 type Patch msg
-    = NoOp
-    | Create (Element msg)
+    = Create (Element msg)
     | Remove
     | ReplaceWith (Element msg)
     | Update
         { attrs : List (Patch msg)
         , children : List (Patch msg)
         }
-    | SetAttr String (Attribute msg)
-    | RemoveAttr String (Attribute msg)
+    | SetAttr String (AttributeValue msg)
+    | RemoveAttr String (AttributeValue msg)
 
 
 diff :
     { old : Element msg
     , new : Element msg
     }
-    -> Patch msg
+    -> Maybe (Patch msg)
 diff ({ old, new } as elements) =
     if didChangeTypeOrTag elements then
-        ReplaceWith new
+        Just <| ReplaceWith new
 
     else
         Maybe.map2
@@ -53,7 +52,6 @@ diff ({ old, new } as elements) =
             )
             (getNodeData old)
             (getNodeData new)
-            |> Maybe.withDefault NoOp
 
 
 didChangeTypeOrTag :
@@ -114,6 +112,7 @@ diffChildren { old, new } =
                 )
                 old.children
                 new.children
+                |> List.filterMap identity
 
         oldLength =
             List.length old.children
