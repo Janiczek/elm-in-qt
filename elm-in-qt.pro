@@ -35,6 +35,7 @@ DISTFILES += \
     src-elm/src/Qt.elm \
     src-elm/src/Qt/View.elm \
     src-elm/src/Qt/View/Attributes.elm \
+    src-elm/src/Qt/View/Diff.elm \
+    src-elm/src/Qt/View/Encode.elm \
     src-elm/src/Qt/View/Events.elm \
-    src-elm/src/Qt/View/Internal.elm \
-    src-elm/src/Qt/View/Virtual.elm
+    src-elm/src/Qt/View/Internal.elm
