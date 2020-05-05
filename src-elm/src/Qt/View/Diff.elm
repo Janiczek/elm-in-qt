@@ -16,7 +16,8 @@ import Qt.View.Internal
 
 
 type Patch msg
-    = Create (Element msg)
+    = NoOp
+    | Create (Element msg)
     | Remove
     | ReplaceWith (Element msg)
     | Update
@@ -24,17 +25,17 @@ type Patch msg
         , children : List (Patch msg)
         }
     | SetAttr String (AttributeValue msg)
-    | RemoveAttr String (AttributeValue msg)
+    | RemoveAttr String
 
 
 diff :
     { old : Element msg
     , new : Element msg
     }
-    -> Maybe (Patch msg)
+    -> Patch msg
 diff ({ old, new } as elements) =
     if didChangeTypeOrTag elements then
-        Just <| ReplaceWith new
+        ReplaceWith new
 
     else
         Maybe.map2
@@ -52,6 +53,7 @@ diff ({ old, new } as elements) =
             )
             (getNodeData old)
             (getNodeData new)
+            |> Maybe.withDefault NoOp
 
 
 didChangeTypeOrTag :
@@ -81,7 +83,7 @@ diffAttrs :
     -> List (Patch msg)
 diffAttrs { old, new } =
     Dict.merge
-        (\name oldAttr acc -> RemoveAttr name oldAttr :: acc)
+        (\name oldAttr acc -> RemoveAttr name :: acc)
         (\name oldAttr newAttr acc ->
             if oldAttr /= newAttr then
                 SetAttr name newAttr :: acc
@@ -112,7 +114,6 @@ diffChildren { old, new } =
                 )
                 old.children
                 new.children
-                |> List.filterMap identity
 
         oldLength =
             List.length old.children
