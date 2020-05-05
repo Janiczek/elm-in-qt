@@ -1,5 +1,6 @@
 module Qt.View.Internal exposing
-    ( Attribute(..)
+    ( Attribute
+    , AttributeValue(..)
     , Element(..)
     , NodeData
     , QMLValue(..)
@@ -19,9 +20,13 @@ type Element msg
 
 type alias NodeData msg =
     { tag : String
-    , attrs : Dict String (Attribute msg)
+    , attrs : Dict String (AttributeValue msg)
     , children : List (Element msg)
     }
+
+
+type alias Attribute msg =
+    ( String, AttributeValue msg )
 
 
 {-| The `msg` here will typically be one of two types:
@@ -37,7 +42,7 @@ the same event handler in a different generation of QML objects.
 TODO check this claim ^ after we get proper VDOM diffing and patching
 
 -}
-type Attribute msg
+type AttributeValue msg
     = Property QMLValue
     | EventHandler msg
 
@@ -56,7 +61,7 @@ type QMLValue
       Raw String
 
 
-isProperty : Attribute msg -> Bool
+isProperty : AttributeValue msg -> Bool
 isProperty attr =
     case attr of
         Property _ ->
@@ -138,12 +143,15 @@ transformEventHandlersHelp events lastEventId element =
 transformEventHandler :
     Dict Int msg
     -> Int
-    -> Attribute msg
-    -> ( Attribute Int, Dict Int msg, Int )
+    -> AttributeValue msg
+    -> ( AttributeValue Int, Dict Int msg, Int )
 transformEventHandler events lastEventId attr =
     case attr of
         Property qmlValue ->
-            ( Property qmlValue, events, lastEventId )
+            ( Property qmlValue
+            , events
+            , lastEventId
+            )
 
         EventHandler msg ->
             let

@@ -11,15 +11,14 @@ I guess the value given to decoders will be the whole object?
 
 -}
 
-import Qt.View.Internal exposing (Attribute(..))
+import Qt.View.Internal exposing (Attribute, AttributeValue(..))
 
 
 on : String -> msg -> Attribute msg
 on eventName msg =
-    EventHandler
-        { eventName = eventName
-        , msg = msg
-        }
+    ( eventName
+    , EventHandler msg
+    )
 
 
 onClick : msg -> Attribute msg

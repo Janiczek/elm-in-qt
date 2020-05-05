@@ -17,17 +17,15 @@ module Qt.View.Attributes exposing
 
 import Qt.View.Internal as Internal
     exposing
-        ( Attribute(..)
+        ( Attribute
+        , AttributeValue(..)
         , QMLValue(..)
         )
 
 
 property : String -> QMLValue -> Attribute msg
 property name value =
-    Property
-        { name = name
-        , value = value
-        }
+    ( name, Property value )
 
 
 intProp : String -> Int -> Attribute msg

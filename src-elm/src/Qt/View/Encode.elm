@@ -1,12 +1,12 @@
 module Qt.View.Encode exposing (encode)
 
+import Dict exposing (Dict)
 import Json.Encode as Encode exposing (Value)
 import Qt.View.Internal
     exposing
-        ( Attribute(..)
+        ( Attribute
+        , AttributeValue(..)
         , Element(..)
-        , EventHandlerData
-        , PropertyData
         , QMLValue(..)
         , isProperty
         )
@@ -33,48 +33,48 @@ encode element =
                 ]
 
 
-partitionAttrs : List (Attribute Int) -> ( List PropertyData, List (EventHandlerData Int) )
+partitionAttrs : Dict String (AttributeValue Int) -> ( List ( String, QMLValue ), List ( String, Int ) )
 partitionAttrs attrs =
-    List.foldr
-        (\attr ( props, handlers ) ->
+    Dict.foldl
+        (\name attr ( props, handlers ) ->
             case attr of
                 Property prop ->
-                    ( prop :: props
+                    ( ( name, prop ) :: props
                     , handlers
                     )
 
                 EventHandler handler ->
                     ( props
-                    , handler :: handlers
+                    , ( name, handler ) :: handlers
                     )
         )
         ( [], [] )
         attrs
 
 
-encodeProperties : List PropertyData -> Value
+encodeProperties : List ( String, QMLValue ) -> Value
 encodeProperties props =
     Encode.object <|
         List.map encodeProperty props
 
 
-encodeProperty : PropertyData -> ( String, Value )
-encodeProperty prop =
-    ( prop.name
-    , encodeQMLValue prop.value
+encodeProperty : ( String, QMLValue ) -> ( String, Value )
+encodeProperty ( name, qmlValue ) =
+    ( name
+    , encodeQMLValue qmlValue
     )
 
 
-encodeEventHandlers : List (EventHandlerData Int) -> Value
+encodeEventHandlers : List ( String, Int ) -> Value
 encodeEventHandlers handlers =
     Encode.object <|
         List.map encodeEventHandler handlers
 
 
-encodeEventHandler : EventHandlerData Int -> ( String, Value )
-encodeEventHandler handler =
-    ( handler.eventName
-    , Encode.int handler.msg
+encodeEventHandler : ( String, Int ) -> ( String, Value )
+encodeEventHandler ( name, eventId ) =
+    ( name
+    , Encode.int eventId
     )
 
 

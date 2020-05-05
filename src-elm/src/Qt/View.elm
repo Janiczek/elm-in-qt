@@ -23,7 +23,7 @@ type alias Element msg =
 
 
 type alias Attribute msg =
-    ( String, Internal.Attribute msg )
+    Internal.Attribute msg
 
 
 nothing : Element msg
