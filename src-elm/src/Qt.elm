@@ -4,20 +4,20 @@ import Dict exposing (Dict)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode exposing (Value)
 import Platform
+import Qt.View.Diff as V
 import Qt.View.Encode as V
-import Qt.View.Internal as V exposing (Element)
+import Qt.View.Internal as V
+    exposing
+        ( Element
+        , Patch(..)
+        )
 
 
 type alias Model model msg =
     { lastEventId : Int
     , events : Dict Int msg
     , userModel : model
-    , {- `Element msg` are good for diffing;
-         generation of `Element Int` is stateful:
-         see `Qt.View.Internal.transformEventHandlers
-      -}
-      userViewUnhandled : Element msg
-    , userView : Element Int
+    , userView : Element msg
     }
 
 
@@ -28,8 +28,7 @@ type Msg msg
 
 
 type MsgToQML msg
-    = ElmInitFinished (Element Int)
-    | NewView (Element Int)
+    = ViewChanged (Patch Int)
 
 
 type alias UserOptions flags model msg qtMsg =
@@ -60,31 +59,16 @@ init user flags =
         ( userModel, userCmd ) =
             user.init flags
 
-        {- TODO We're doing this once here and once in deriveView...
-           Is there a better way?
-           (See the comment below near `deriveView user Nothing`)
-        -}
-        userViewUnhandled =
+        userView =
             user.view userModel
-
-        ( userView, _, _ ) =
-            V.transformEventHandlers
-                lastEventId
-                userViewUnhandled
     in
     ( { lastEventId = lastEventId
       , events = Dict.empty
       , userModel = userModel
-      , userViewUnhandled = userViewUnhandled
       , userView = userView
       }
     , Cmd.map UserMsg userCmd
     )
-        {- We intentionally send Nothing here (because there's no previous view).
-           We need to put something into the `Model.userView` though so in effect we
-           compute it twice. I guess this could be solved by `userView : Maybe ...`
-           but I don't want to compromise on that :) TODO think of something
-        -}
         |> deriveView user Nothing
 
 
@@ -95,28 +79,39 @@ deriveView :
     -> ( Model model msg, Cmd (Msg msg) )
 deriveView user maybeOldView ( model, cmd ) =
     let
-        newUserViewUnhandled =
+        newUserView =
             user.view model.userModel
+
+        patch =
+            case maybeOldView of
+                Nothing ->
+                    ReplaceWith newUserView
+
+                Just oldView ->
+                    V.diff
+                        { old = oldView
+                        , new = newUserView
+                        }
     in
-    if maybeOldView == Just newUserViewUnhandled then
+    if patch == NoOp then
         ( model, cmd )
 
     else
         let
-            ( newUserView, newEvents, newLastEventId ) =
+            ( patchWithEventIds, newEvents, newLastEventId ) =
                 V.transformEventHandlers
+                    model.events
                     model.lastEventId
-                    newUserViewUnhandled
+                    patch
         in
         ( { model
             | userView = newUserView
-            , userViewUnhandled = newUserViewUnhandled
             , events = newEvents
             , lastEventId = newLastEventId
           }
         , Cmd.batch
             [ cmd
-            , sendToQt user <| NewView newUserView
+            , sendToQt user <| ViewChanged <| patchWithEventIds
             ]
         )
 
@@ -158,7 +153,7 @@ handleUserMsg user userMsg model =
     ( { model | userModel = newUserModel }
     , Cmd.map UserMsg userCmd
     )
-        |> deriveView user (Just model.userViewUnhandled)
+        |> deriveView user (Just model.userView)
 
 
 subscriptions : UserOptions flags model msg (Msg msg) -> Model model msg -> Sub (Msg msg)
@@ -197,14 +192,8 @@ sendToQt : UserOptions flags model msg (Msg msg) -> MsgToQML msg -> Cmd (Msg msg
 sendToQt user msg =
     user.elmToQt <|
         case msg of
-            ElmInitFinished view ->
+            ViewChanged patch ->
                 Encode.object
-                    [ ( "tag", Encode.string "ElmInitFinished" )
-                    , ( "initialView", V.encode view )
-                    ]
-
-            NewView view ->
-                Encode.object
-                    [ ( "tag", Encode.string "NewView" )
-                    , ( "view", V.encode view )
+                    [ ( "tag", Encode.string "ViewChanged" )
+                    , ( "patch", V.encodePatch patch )
                     ]

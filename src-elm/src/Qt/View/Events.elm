@@ -1,4 +1,8 @@
-module Qt.View.Events exposing (on, onClick)
+module Qt.View.Events exposing
+    ( on
+    , onClick
+    , onDoubleClick
+    )
 
 {-| The events here are basically the signals from QT documentation, like here:
 <https://doc.qt.io/qt-5/qml-qtquick-controls2-abstractbutton.html#signals>
@@ -22,6 +26,10 @@ on eventName msg =
 
 
 onClick : msg -> Attribute msg
-onClick msg =
-    -- TODO case sensitivity?
-    on "Clicked" msg
+onClick =
+    on "Clicked"
+
+
+onDoubleClick : msg -> Attribute msg
+onDoubleClick =
+    on "DoubleClicked"

@@ -1,4 +1,4 @@
-module Qt.View.Encode exposing (encode)
+module Qt.View.Encode exposing (encode, encodePatch)
 
 import Dict exposing (Dict)
 import Json.Encode as Encode exposing (Value)
@@ -7,9 +7,69 @@ import Qt.View.Internal
         ( Attribute
         , AttributeValue(..)
         , Element(..)
+        , Patch(..)
         , QMLValue(..)
         , isProperty
         )
+
+
+encodePatch : Patch Int -> Value
+encodePatch patch =
+    case patch of
+        NoOp ->
+            Encode.object [ ( "type", Encode.string "NoOp" ) ]
+
+        Create element ->
+            Encode.object
+                [ ( "type", Encode.string "Create" )
+                , ( "element", encode element )
+                ]
+
+        Remove ->
+            Encode.object
+                [ ( "type", Encode.string "Remove" ) ]
+
+        ReplaceWith element ->
+            Encode.object
+                [ ( "type", Encode.string "ReplaceWith" )
+                , ( "element", encode element )
+                ]
+
+        Update { attrs, children } ->
+            Encode.object
+                [ ( "type", Encode.string "Update" )
+                , ( "attrs", Encode.list encodePatch attrs )
+                , ( "children", Encode.list encodePatch children )
+                ]
+
+        SetAttr name attr ->
+            Encode.object
+                [ ( "type", Encode.string "SetAttr" )
+                , ( "name", Encode.string name )
+                , ( "attr", encodeAttr attr )
+                ]
+
+        RemoveAttr name ->
+            Encode.object
+                [ ( "type", Encode.string "RemoveAttr" )
+                , ( "name", Encode.string name )
+                ]
+
+
+encodeAttr : AttributeValue Int -> Value
+encodeAttr attr =
+    case attr of
+        Property qmlValue ->
+            Encode.object
+                [ ( "type", Encode.string "Property" )
+                , ( "qmlValue", encodeQMLValue qmlValue )
+                ]
+
+        EventHandler eventId ->
+            Encode.object
+                [ ( "type", Encode.string "EventHandler" )
+                , ( "eventId", Encode.int eventId )
+                ]
 
 
 encode : Element Int -> Value

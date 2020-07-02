@@ -3,7 +3,9 @@ module Qt.View exposing
     , Element
     , button
     , column
+    , columnLayout
     , grid
+    , mouseArea
     , node
     , nothing
     , rectangle
@@ -69,6 +71,11 @@ rowLayout =
     node "RowLayout"
 
 
+columnLayout : List (Attribute msg) -> List (Element msg) -> Element msg
+columnLayout =
+    node "ColumnLayout"
+
+
 column : List (Attribute msg) -> List (Element msg) -> Element msg
 column =
     node "Column"
@@ -82,3 +89,8 @@ rectangle =
 button : List (Attribute msg) -> List (Element msg) -> Element msg
 button =
     node "Button"
+
+
+mouseArea : List (Attribute msg) -> List (Element msg) -> Element msg
+mouseArea =
+    node "MouseArea"

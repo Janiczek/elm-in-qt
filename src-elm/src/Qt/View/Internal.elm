@@ -3,6 +3,7 @@ module Qt.View.Internal exposing
     , AttributeValue(..)
     , Element(..)
     , NodeData
+    , Patch(..)
     , QMLValue(..)
     , getNodeData
     , isProperty
@@ -61,6 +62,19 @@ type QMLValue
       Raw String
 
 
+type Patch msg
+    = NoOp
+    | Create (Element msg)
+    | Remove
+    | ReplaceWith (Element msg)
+    | Update
+        { attrs : List (Patch msg)
+        , children : List (Patch msg)
+        }
+    | SetAttr String (AttributeValue msg)
+    | RemoveAttr String
+
+
 isProperty : AttributeValue msg -> Bool
 isProperty attr =
     case attr of
@@ -71,20 +85,133 @@ isProperty attr =
             False
 
 
-transformEventHandlers : Int -> Element msg -> ( Element Int, Dict Int msg, Int )
-transformEventHandlers lastEventId element =
-    transformEventHandlersHelp
-        Dict.empty
-        lastEventId
-        element
+getNodeData : Element msg -> Maybe (NodeData msg)
+getNodeData element =
+    case element of
+        Empty ->
+            Nothing
+
+        Node nodeData ->
+            Just nodeData
 
 
-transformEventHandlersHelp :
+transformEventHandlers :
+    Dict Int msg
+    -> Int
+    -> Patch msg
+    -> ( Patch Int, Dict Int msg, Int )
+transformEventHandlers events lastEventId patch =
+    case patch of
+        NoOp ->
+            ( NoOp
+            , events
+            , lastEventId
+            )
+
+        Create element ->
+            let
+                ( newElement, eventsAfterElement, lastEventIdAfterElement ) =
+                    transformEventHandlersInElement
+                        events
+                        lastEventId
+                        element
+            in
+            ( Create newElement
+            , eventsAfterElement
+            , lastEventIdAfterElement
+            )
+
+        Remove ->
+            ( Remove
+            , events
+            , lastEventId
+            )
+
+        ReplaceWith element ->
+            let
+                ( newElement, eventsAfterElement, lastEventIdAfterElement ) =
+                    transformEventHandlersInElement
+                        events
+                        lastEventId
+                        element
+            in
+            ( ReplaceWith newElement
+            , eventsAfterElement
+            , lastEventIdAfterElement
+            )
+
+        Update { attrs, children } ->
+            let
+                ( newAttrs, eventsAfterAttrs, lastEventIdAfterAttrs ) =
+                    List.foldr
+                        (\attrPatch ( accAttrs, accEvents, accLastEventId ) ->
+                            let
+                                ( newAttrPatch, eventsAfterAttrPatch, lastEventIdAfterAttrPatch ) =
+                                    transformEventHandlers
+                                        accEvents
+                                        accLastEventId
+                                        attrPatch
+                            in
+                            ( newAttrPatch :: accAttrs
+                            , eventsAfterAttrPatch
+                            , lastEventIdAfterAttrPatch
+                            )
+                        )
+                        ( [], events, lastEventId )
+                        attrs
+
+                ( newChildren, eventsAfterChildren, lastEventIdAfterChildren ) =
+                    List.foldr
+                        (\childPatch ( accChildren, accEvents, accLastEventId ) ->
+                            let
+                                ( newChildPatch, eventsAfterChildPatch, lastEventIdAfterChildPatch ) =
+                                    transformEventHandlers
+                                        accEvents
+                                        accLastEventId
+                                        childPatch
+                            in
+                            ( newChildPatch :: accChildren
+                            , eventsAfterChildPatch
+                            , lastEventIdAfterChildPatch
+                            )
+                        )
+                        ( [], eventsAfterAttrs, lastEventIdAfterAttrs )
+                        children
+            in
+            ( Update
+                { attrs = newAttrs
+                , children = newChildren
+                }
+            , eventsAfterChildren
+            , lastEventIdAfterChildren
+            )
+
+        SetAttr name attr ->
+            let
+                ( newAttr, eventsAfterAttr, lastEventIdAfterAttr ) =
+                    transformEventHandler
+                        events
+                        lastEventId
+                        attr
+            in
+            ( SetAttr name newAttr
+            , eventsAfterAttr
+            , lastEventIdAfterAttr
+            )
+
+        RemoveAttr name ->
+            ( RemoveAttr name
+            , events
+            , lastEventId
+            )
+
+
+transformEventHandlersInElement :
     Dict Int msg
     -> Int
     -> Element msg
     -> ( Element Int, Dict Int msg, Int )
-transformEventHandlersHelp events lastEventId element =
+transformEventHandlersInElement events lastEventId element =
     case element of
         Empty ->
             ( Empty
@@ -99,7 +226,7 @@ transformEventHandlersHelp events lastEventId element =
                         (\child ( accChildren, accEvents, accLastEventId ) ->
                             let
                                 ( newChild, eventsAfterChild, lastEventIdAfterChild ) =
-                                    transformEventHandlersHelp
+                                    transformEventHandlersInElement
                                         accEvents
                                         accLastEventId
                                         child
@@ -162,13 +289,3 @@ transformEventHandler events lastEventId attr =
             , Dict.insert newEventId msg events
             , newEventId
             )
-
-
-getNodeData : Element msg -> Maybe (NodeData msg)
-getNodeData element =
-    case element of
-        Empty ->
-            Nothing
-
-        Node nodeData ->
-            Just nodeData

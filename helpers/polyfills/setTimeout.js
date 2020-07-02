@@ -27,3 +27,25 @@ function clearTimeout(id) {
     timers[id].destroy();
     delete timers[id];
 }
+
+function setInterval(callback, timeout = 0) {
+    const timer = timerComponent.createObject()
+
+    timer.interval = timeout || TIMEOUT_IMMEDIATELY
+
+    timer.triggered.connect(() => {
+        callback()
+    })
+
+    timer.start()
+
+    lastId++;
+    timers[lastId] = timer;
+    return lastId;
+}
+
+function clearInterval(id) {
+    timers[id].stop();
+    timers[id].destroy();
+    delete timers[id];
+}

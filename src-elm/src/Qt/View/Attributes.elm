@@ -1,5 +1,6 @@
 module Qt.View.Attributes exposing
     ( anchorsCenterIn
+    , anchorsFill
     , boolProp
     , color
     , columns
@@ -8,11 +9,14 @@ module Qt.View.Attributes exposing
     , horizontalAlignment
     , intProp
     , layoutFillWidth
+    , radius
     , rawProp
     , spacing
     , stringProp
     , text
     , width
+    , x
+    , y
     )
 
 import Qt.View.Internal as Internal
@@ -93,6 +97,26 @@ anchorsCenterIn =
     rawProp "anchors.centerIn"
 
 
+anchorsFill : String -> Attribute msg
+anchorsFill =
+    rawProp "anchors.fill"
+
+
 horizontalAlignment : String -> Attribute msg
 horizontalAlignment =
     rawProp "horizontalAlignment"
+
+
+x : Float -> Attribute msg
+x =
+    floatProp "x"
+
+
+y : Float -> Attribute msg
+y =
+    floatProp "y"
+
+
+radius : Float -> Attribute msg
+radius =
+    floatProp "radius"

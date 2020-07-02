@@ -15,20 +15,19 @@ Window {
     property var elm
 
     Component.onCompleted: {
+        // create an element dynamically that will be Elm's root (and change etc.)
+        // if we created it outside JS, we couldn't .destroy() it...
+        Qt.createQmlObject('import QtQuick 2.14; Text {}', mainwindow, 'root');
+
         elm = Elm.initElmApp().Main.init();
-        //elm.ports.qtToElm.send({tag: 'hi to Elm from Qt', someData: 42});
+
         elm.ports.elmToQt.subscribe((value) => {
             switch (value.tag) {
-                case 'ElmInitFinished':
-                    VirtualQML.create(value.initialView, mainwindow, elm);
-                    break;
-                case 'NewView':
-                    // TODO be more efficient with new views... diff, patch, do only minimum necessary work
-                    VirtualQML.clear(mainwindow);
-                    VirtualQML.create(value.view, mainwindow, elm);
+                case 'ViewChanged':
+                    VirtualQML.applyPatch(value.patch, mainwindow.data[0]);
                     break;
                 default:
-                    console.error(`Unknown Elm message to Qt! ${value.tag}`);
+                    throw(`Unknown Elm message to Qt: ${value.tag}`);
             }
         });
     }

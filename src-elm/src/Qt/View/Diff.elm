@@ -1,4 +1,4 @@
-module Qt.View.Diff exposing (Patch(..), diff)
+module Qt.View.Diff exposing (diff)
 
 {-| Inspired (heavily!) by
 <https://github.com/heiskr/prezzy-vdom-example/blob/master/index.master.js>
@@ -11,21 +11,9 @@ import Qt.View.Internal
         ( AttributeValue(..)
         , Element(..)
         , NodeData
+        , Patch(..)
         , getNodeData
         )
-
-
-type Patch msg
-    = NoOp
-    | Create (Element msg)
-    | Remove
-    | ReplaceWith (Element msg)
-    | Update
-        { attrs : List (Patch msg)
-        , children : List (Patch msg)
-        }
-    | SetAttr String (AttributeValue msg)
-    | RemoveAttr String
 
 
 diff :
@@ -45,11 +33,21 @@ diff ({ old, new } as elements) =
                         { old = oldNode
                         , new = newNode
                         }
+
+                    attrs =
+                        diffAttrs nodes
+
+                    children =
+                        diffChildren nodes
                 in
-                Update
-                    { attrs = diffAttrs nodes
-                    , children = diffChildren nodes
-                    }
+                if List.isEmpty attrs && List.isEmpty children then
+                    NoOp
+
+                else
+                    Update
+                        { attrs = attrs
+                        , children = children
+                        }
             )
             (getNodeData old)
             (getNodeData new)

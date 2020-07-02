@@ -7,7 +7,7 @@ build: prepare-deps
 	# - import setTimeout
 	# - wrap everything in a function that we'll call explicitly
 	# - return the previous IIFE in that new function
-	/usr/bin/sed -i '1i const {setTimeout, clearTimeout} = SetTimeout;\nfunction initElmApp() {\nreturn' elm.js
+	/usr/bin/sed -i '1i const {setTimeout, clearTimeout, setInterval, clearInterval} = SetTimeout;\nfunction initElmApp() {\nreturn' elm.js
 	/usr/bin/nvim -u NONE \
 		  -c 'normal ggjjJ' \
 			-c 'wq' \
@@ -17,7 +17,7 @@ build: prepare-deps
 	# - return scope['Elm'] because QML doesn't let the scripts have any notion of this / global / window.
 	/usr/bin/nvim -u NONE \
 		  -c 'normal gg' \
-		  -c '/_Platform_export.exports' \
+		  -c '/function _Platform_export' \
 			-c '/}' \
 			-c "normal Oreturn scope['Elm'];" \
 			-c 'wq' \
